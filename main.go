@@ -49,13 +49,8 @@ func addLogEntry(logEntry *logEntry, session *session) error {
 
 func RunAllLogs(Session *session) {
 	updated := false
-
-	ch := make(chan bool, len(Session.Log))
 	for _, logEntry := range Session.Log {
-		go updateSoTOnLogEntry(&logEntry, Session, ch)
-	}
-	for range Session.Log {
-		updated = updated || <-ch
+		updated = updated || updateSoTOnLogEntry(&logEntry, Session)
 	}
 	if updated {
 		RunAllLogs(Session)
@@ -68,7 +63,7 @@ type sourceOfTruth struct {
 	WeaponMap    map[string]map[string]int `json:"weaponMap"`
 }
 
-func updateSoTOnLogEntry(logEntry *logEntry, Session *session, ch chan bool) {
+func updateSoTOnLogEntry(logEntry *logEntry, Session *session) bool {
 	// what if there is no response?
 	suggesterIdx := slices.IndexFunc(Session.Players, func(playerName string) bool { return playerName == logEntry.Suggester })
 	responderIdx := slices.IndexFunc(Session.Players, func(playerName string) bool { return playerName == logEntry.Responder })
@@ -209,7 +204,7 @@ func updateSoTOnLogEntry(logEntry *logEntry, Session *session, ch chan bool) {
 			}
 		}
 	}
-	ch <- updated
+	return updated
 }
 
 func updateSoTOnCardReveal(revealedCard string, responder string, Session *session) {
