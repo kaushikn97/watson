@@ -458,6 +458,17 @@ func playerListHandler(c *gin.Context) {
 
 }
 
+func logEntries(c *gin.Context) {
+	sessionId := c.Param("sessionId")
+	session, err := getSession(sessionId)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid session id"})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, session.Log)
+}
+
 func main() {
 	router := gin.Default()
 
@@ -475,6 +486,8 @@ func main() {
 	router.GET("/:sessionId/sourceOfTruth", sourceOfTruthHandler)
 
 	router.GET("/:sessionId/playerList", playerListHandler)
+
+	router.GET("/:sessionId/logs", logEntries)
 
 	router.Run("localhost:8080")
 }
